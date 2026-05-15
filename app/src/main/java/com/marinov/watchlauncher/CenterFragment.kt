@@ -22,6 +22,16 @@ class CenterFragment : Fragment() {
         // Define a navegação para ser Vertical (para cima / para baixo)
         viewPager.orientation = ViewPager2.ORIENTATION_VERTICAL
 
+        // Adicionamos este bloco para travar a rolagem horizontal da Activity Principal
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                val parentViewPager = requireActivity().findViewById<ViewPager2>(R.id.viewPager)
+                // Se a posição for 0 (Relógio), libera o deslize pros lados. Se for 1 (Widgets), bloqueia.
+                parentViewPager?.isUserInputEnabled = (position == 0)
+            }
+        })
+
         viewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int = 2
 
