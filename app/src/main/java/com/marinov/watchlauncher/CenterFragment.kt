@@ -7,8 +7,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import com.marinov.watchlauncher.clock.ClockFragment
-import com.marinov.watchlauncher.widgets.WidgetFragment
 
 class CenterFragment : Fragment() {
 

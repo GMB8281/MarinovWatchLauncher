@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher.apps
+package com.marinov.watchlauncher
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.marinov.watchlauncher.R
 
 class AppAdapter(
     private val apps: List<AppInfo>,

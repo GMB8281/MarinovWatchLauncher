@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher.notifications
+package com.marinov.watchlauncher
 
 import android.app.PendingIntent
 import android.content.pm.PackageManager
@@ -12,7 +12,6 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
-import com.marinov.watchlauncher.R
 
 class NotificationFragment : Fragment() {
 
@@ -95,7 +94,7 @@ class NotificationFragment : Fragment() {
                 val appInfo = pm.getApplicationInfo(sbn.packageName, 0)
                 txtAppName.text = pm.getApplicationLabel(appInfo)
                 imgIcon.setImageDrawable(pm.getApplicationIcon(appInfo))
-            } catch (e: PackageManager.NameNotFoundException) {
+            } catch (_: PackageManager.NameNotFoundException) {
                 txtAppName.text = sbn.packageName
             }
         }

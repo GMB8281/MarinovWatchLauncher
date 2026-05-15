@@ -1,11 +1,7 @@
-package com.marinov.watchlauncher.adapters
-
+package com.marinov.watchlauncher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.marinov.watchlauncher.CenterFragment
-import com.marinov.watchlauncher.apps.AppDrawerFragment
-import com.marinov.watchlauncher.notifications.NotificationFragment
 
 class LauncherPagerAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
     override fun getItemCount(): Int = 3

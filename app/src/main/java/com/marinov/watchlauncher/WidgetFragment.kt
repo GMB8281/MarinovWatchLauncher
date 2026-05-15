@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher.widgets
+package com.marinov.watchlauncher
 
 import android.app.Activity.RESULT_OK
 import android.app.AlertDialog
@@ -16,8 +16,8 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.marinov.watchlauncher.R
 import kotlin.math.min
+import androidx.core.content.edit
 
 class WidgetFragment : Fragment() {
 
@@ -64,7 +64,7 @@ class WidgetFragment : Fragment() {
 
     private fun saveWidgets() {
         val prefs = requireContext().getSharedPreferences("watch_launcher_prefs", Context.MODE_PRIVATE)
-        prefs.edit().putString("widget_ids", widgetIds.joinToString(",")).apply()
+        prefs.edit { putString("widget_ids", widgetIds.joinToString(",")) }
     }
 
     private fun selectWidget() {

@@ -5,10 +5,6 @@ import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
-import com.marinov.watchlauncher.adapters.LauncherPagerAdapter
-import com.marinov.watchlauncher.utils.PermissionUtils
-import kotlinx.coroutines.delay
-
 class LauncherActivity : AppCompatActivity() {
 
     private lateinit var viewPager: ViewPager2

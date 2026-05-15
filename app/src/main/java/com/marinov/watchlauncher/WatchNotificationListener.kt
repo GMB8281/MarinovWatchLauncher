@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher.notifications
+package com.marinov.watchlauncher
 
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification

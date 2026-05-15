@@ -1,11 +1,10 @@
-package com.marinov.watchlauncher.clock
+package com.marinov.watchlauncher
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.marinov.watchlauncher.R
 
 class ClockFragment : Fragment() {
 

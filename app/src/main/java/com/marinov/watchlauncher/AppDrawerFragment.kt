@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher.apps
+package com.marinov.watchlauncher
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -8,8 +8,6 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherApps
 import android.content.pm.ResolveInfo
 import android.graphics.drawable.Drawable
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Process
 import android.provider.Settings
@@ -17,10 +15,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.marinov.watchlauncher.R
 
 data class AppInfo(
     val label: String,
@@ -82,7 +80,7 @@ class AppDrawerFragment : Fragment() {
         super.onPause()
         try {
             requireContext().unregisterReceiver(packageReceiver)
-        } catch (e: Exception) {}
+        } catch (_: Exception) {}
     }
 
     private fun loadApps() {
@@ -153,13 +151,12 @@ class AppDrawerFragment : Fragment() {
 
             // Pode desinstalar se NÃO for app de sistema OU for um sistema atualizado
             !isSystemApp || isUpdatedSystemApp
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
 
     private fun addShortcutsToMenu(popup: PopupMenu, app: AppInfo) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) return
 
         try {
             val launcherApps = requireContext().getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
@@ -191,7 +188,7 @@ class AppDrawerFragment : Fragment() {
                     true
                 }
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Falha silenciosa
         }
     }
@@ -199,7 +196,7 @@ class AppDrawerFragment : Fragment() {
     private fun showAppInfo(packageName: String) {
         try {
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.parse("package:$packageName")
+                data = "package:$packageName".toUri()
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
             startActivity(intent)
@@ -211,7 +208,7 @@ class AppDrawerFragment : Fragment() {
     private fun uninstallApp(packageName: String) {
         try {
             val intent = Intent(Intent.ACTION_DELETE).apply {
-                data = Uri.parse("package:$packageName")
+                data = "package:$packageName".toUri()
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }
             startActivity(intent)
@@ -219,7 +216,7 @@ class AppDrawerFragment : Fragment() {
             e.printStackTrace()
             try {
                 val fallbackIntent = Intent("android.intent.action.UNINSTALL_PACKAGE").apply {
-                    data = Uri.parse("package:$packageName")
+                    data = "package:$packageName".toUri()
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 startActivity(fallbackIntent)
