@@ -60,6 +60,7 @@ class AppDrawerFragment : Fragment() {
 
         recyclerView.adapter = adapter
 
+        // A primeira carga acontece aqui
         loadApps()
 
         return view
@@ -74,6 +75,10 @@ class AppDrawerFragment : Fragment() {
             addDataScheme("package")
         }
         requireContext().registerReceiver(packageReceiver, filter)
+
+        // CORREÇÃO: Força a atualização da lista sempre que a tela de apps reaparece.
+        // Resolve o problema de quando o usuário instala um app fora da Launcher (ex: via PlayStore).
+        loadApps()
     }
 
     override fun onPause() {
