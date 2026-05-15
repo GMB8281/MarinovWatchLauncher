@@ -23,7 +23,8 @@ import androidx.recyclerview.widget.RecyclerView
 data class AppInfo(
     val label: String,
     val icon: Drawable,
-    val packageName: String
+    val packageName: String,
+    val className: String
 )
 
 class AppDrawerFragment : Fragment() {
@@ -31,6 +32,9 @@ class AppDrawerFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: AppAdapter
     private var apps = mutableListOf<AppInfo>()
+
+    private val SETTINGS_PACKAGE = "com.marinov.watchlauncher"
+    private val SETTINGS_CLASS = "com.marinov.watchlauncher.SettingsActivity"
 
     private val packageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -60,7 +64,6 @@ class AppDrawerFragment : Fragment() {
 
         recyclerView.adapter = adapter
 
-        // A primeira carga acontece aqui
         loadApps()
 
         return view
@@ -75,9 +78,6 @@ class AppDrawerFragment : Fragment() {
             addDataScheme("package")
         }
         requireContext().registerReceiver(packageReceiver, filter)
-
-        // CORREÇÃO: Força a atualização da lista sempre que a tela de apps reaparece.
-        // Resolve o problema de quando o usuário instala um app fora da Launcher (ex: via PlayStore).
         loadApps()
     }
 
@@ -98,47 +98,76 @@ class AppDrawerFragment : Fragment() {
 
         apps.clear()
         apps.addAll(
-            resolveInfos.map {
-                AppInfo(
-                    label = it.loadLabel(pm).toString(),
-                    icon = it.loadIcon(pm),
-                    packageName = it.activityInfo.packageName
-                )
-            }.sortedBy { it.label.lowercase() }
+            resolveInfos
+                // Remove a LauncherActivity principal da lista
+                .filter { it.activityInfo.name != "com.marinov.watchlauncher.LauncherActivity" }
+                .map {
+                    AppInfo(
+                        label = it.loadLabel(pm).toString(),
+                        icon = it.activityInfo.loadIcon(pm),
+                        packageName = it.activityInfo.packageName,
+                        className = it.activityInfo.name
+                    )
+                }.sortedBy { it.label.lowercase() }
         )
 
         adapter.notifyDataSetChanged()
     }
 
     private fun launchApp(app: AppInfo) {
-        val launchIntent = requireContext().packageManager.getLaunchIntentForPackage(app.packageName)
-        launchIntent?.let { startActivity(it) }
+        try {
+            // Tratamento especial para a SettingsActivity
+            if (app.packageName == SETTINGS_PACKAGE && app.className.contains("SettingsActivity")) {
+                val intent = Intent(requireContext(), SettingsActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+                startActivity(intent)
+                return
+            }
+
+            // Método padrão para outros apps
+            val intent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_LAUNCHER)
+                setClassName(app.packageName, app.className)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+            }
+            startActivity(intent)
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Último fallback
+            try {
+                val fallback = requireContext().packageManager.getLaunchIntentForPackage(app.packageName)
+                fallback?.let { startActivity(it) }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
+        }
     }
 
     // ==================== MENU AO SEGURAR ====================
     private fun showAppOptionsMenu(app: AppInfo, anchorView: View) {
         val popup = PopupMenu(requireContext(), anchorView)
 
-        // 1. Quick Shortcuts (se disponíveis)
         addShortcutsToMenu(popup, app)
 
-        // 2. Abrir o app
         popup.menu.add("Abrir ${app.label}").setOnMenuItemClickListener {
             launchApp(app)
             true
         }
 
-        // 3. Informações do App
-        popup.menu.add("Informações do app").setOnMenuItemClickListener {
-            showAppInfo(app.packageName)
-            true
-        }
-
-        // 4. Desinstalar (só para apps removíveis)
-        if (canBeUninstalled(app.packageName)) {
-            popup.menu.add("Desinstalar").setOnMenuItemClickListener {
-                uninstallApp(app.packageName)
+        // Esconde Informações e Desinstalar para a tela de Configurações
+        if (app.className != SETTINGS_CLASS) {
+            popup.menu.add("Informações do app").setOnMenuItemClickListener {
+                showAppInfo(app.packageName)
                 true
+            }
+
+            if (canBeUninstalled(app.packageName)) {
+                popup.menu.add("Desinstalar").setOnMenuItemClickListener {
+                    uninstallApp(app.packageName)
+                    true
+                }
             }
         }
 
@@ -148,13 +177,9 @@ class AppDrawerFragment : Fragment() {
     private fun canBeUninstalled(packageName: String): Boolean {
         return try {
             val pm = requireContext().packageManager
-            val appInfo: ApplicationInfo = pm.getApplicationInfo(packageName, 0)
-
-            // Apps de sistema puro geralmente não podem ser desinstalados
+            val appInfo = pm.getApplicationInfo(packageName, 0)
             val isSystemApp = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
             val isUpdatedSystemApp = (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
-
-            // Pode desinstalar se NÃO for app de sistema OU for um sistema atualizado
             !isSystemApp || isUpdatedSystemApp
         } catch (_: Exception) {
             false
@@ -162,7 +187,6 @@ class AppDrawerFragment : Fragment() {
     }
 
     private fun addShortcutsToMenu(popup: PopupMenu, app: AppInfo) {
-
         try {
             val launcherApps = requireContext().getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
 
@@ -193,9 +217,7 @@ class AppDrawerFragment : Fragment() {
                     true
                 }
             }
-        } catch (_: Exception) {
-            // Falha silenciosa
-        }
+        } catch (_: Exception) {}
     }
 
     private fun showAppInfo(packageName: String) {
@@ -220,11 +242,11 @@ class AppDrawerFragment : Fragment() {
         } catch (e: Exception) {
             e.printStackTrace()
             try {
-                val fallbackIntent = Intent("android.intent.action.UNINSTALL_PACKAGE").apply {
+                val fallback = Intent("android.intent.action.UNINSTALL_PACKAGE").apply {
                     data = "package:$packageName".toUri()
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
-                startActivity(fallbackIntent)
+                startActivity(fallback)
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }

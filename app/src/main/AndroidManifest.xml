@@ -2,11 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissões necessárias -->
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="PackageVisibilityPolicy,QueryAllPackagesPermission" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
     <application
         android:allowBackup="true"
@@ -18,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Launcher">
 
-        <!-- Activity Principal (Home) -->
+        <!-- Activity Principal da Launcher -->
         <activity
             android:name=".LauncherActivity"
             android:exported="true"
@@ -34,7 +32,19 @@
             </intent-filter>
         </activity>
 
-        <!-- Serviço de Leitura de Notificações -->
+        <!-- Nova Activity de Configurações ("App Falso") -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="true"
+            android:label="Config Launcher"
+            android:icon="@drawable/ic_settings"
+            android:theme="@style/Theme.Launcher.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <service
             android:name=".WatchNotificationListener"
             android:label="Watch Launcher Notifications"
