@@ -63,9 +63,7 @@ class AppDrawerFragment : Fragment() {
         }
 
         recyclerView.adapter = adapter
-
         loadApps()
-
         return view
     }
 
@@ -96,11 +94,15 @@ class AppDrawerFragment : Fragment() {
 
         val resolveInfos: List<ResolveInfo> = pm.queryIntentActivities(intent, 0)
 
+        // Carrega lista de pacotes ocultos
+        val prefs = requireContext().getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
+        val hiddenPackages = prefs.getStringSet("hidden_packages", emptySet()) ?: emptySet()
+
         apps.clear()
         apps.addAll(
             resolveInfos
-                // Remove a LauncherActivity principal da lista
                 .filter { it.activityInfo.name != "com.marinov.watchlauncher.LauncherActivity" }
+                .filter { it.activityInfo.packageName !in hiddenPackages }
                 .map {
                     AppInfo(
                         label = it.loadLabel(pm).toString(),
@@ -116,7 +118,6 @@ class AppDrawerFragment : Fragment() {
 
     private fun launchApp(app: AppInfo) {
         try {
-            // Tratamento especial para a SettingsActivity
             if (app.packageName == SETTINGS_PACKAGE && app.className.contains("SettingsActivity")) {
                 val intent = Intent(requireContext(), SettingsActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -125,7 +126,6 @@ class AppDrawerFragment : Fragment() {
                 return
             }
 
-            // Método padrão para outros apps
             val intent = Intent(Intent.ACTION_MAIN).apply {
                 addCategory(Intent.CATEGORY_LAUNCHER)
                 setClassName(app.packageName, app.className)
@@ -135,7 +135,6 @@ class AppDrawerFragment : Fragment() {
 
         } catch (e: Exception) {
             e.printStackTrace()
-            // Último fallback
             try {
                 val fallback = requireContext().packageManager.getLaunchIntentForPackage(app.packageName)
                 fallback?.let { startActivity(it) }
@@ -145,7 +144,6 @@ class AppDrawerFragment : Fragment() {
         }
     }
 
-    // ==================== MENU AO SEGURAR ====================
     private fun showAppOptionsMenu(app: AppInfo, anchorView: View) {
         val popup = PopupMenu(requireContext(), anchorView)
 
@@ -156,7 +154,6 @@ class AppDrawerFragment : Fragment() {
             true
         }
 
-        // Esconde Informações e Desinstalar para a tela de Configurações
         if (app.className != SETTINGS_CLASS) {
             popup.menu.add("Informações do app").setOnMenuItemClickListener {
                 showAppInfo(app.packageName)

@@ -29,13 +29,61 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/btnSettingsBack" />
 
-    <TextView
+    <!-- Opções -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:text="Opções da launcher em breve..."
-        android:textColor="@color/text_secondary"
-        android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@id/txtSettingsTitle" />
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/txtSettingsTitle">
+
+        <!-- Bloqueio com duplo toque -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Bloquear tela com duplo toque"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchDoubleTap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Ocultar apps -->
+        <TextView
+            android:id="@+id/btnHideApps"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Ocultar aplicativos"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Reiniciar launcher -->
+        <TextView
+            android:id="@+id/btnRestartLauncher"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Reiniciar launcher"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

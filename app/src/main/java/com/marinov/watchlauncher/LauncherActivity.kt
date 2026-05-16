@@ -1,5 +1,7 @@
 package com.marinov.watchlauncher
 
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -19,14 +21,9 @@ class LauncherActivity : AppCompatActivity() {
 
         viewPager = findViewById(R.id.viewPager)
         viewPager.adapter = LauncherPagerAdapter(this)
-
-        // Mantém as abas laterais na memória para transições fluidas
         viewPager.offscreenPageLimit = 2
-
-        // Inicia na tela do Centro (Relógio)
         viewPager.setCurrentItem(1, false)
 
-        // Manipulador do botão físico "Voltar"
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 resetToClockScreen()
@@ -34,8 +31,6 @@ class LauncherActivity : AppCompatActivity() {
         })
     }
 
-    // O onResume é o melhor lugar para checar permissões em sequência,
-    // pois ele roda novamente quando o usuário volta da tela de configurações.
     override fun onResume() {
         super.onResume()
         checkPermissionsSequentially()
@@ -46,7 +41,7 @@ class LauncherActivity : AppCompatActivity() {
 
         val prefs = getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
 
-        // 1. Checa a bateria
+        // 1. Bateria
         if (!PermissionUtils.isBatteryOptimizationIgnored(this) && !prefs.getBoolean("ignore_battery_prompt", false)) {
             isAskingPermissions = true
             AlertDialog.Builder(this)
@@ -59,14 +54,14 @@ class LauncherActivity : AppCompatActivity() {
                 .setNegativeButton("Agora não") { _, _ ->
                     prefs.edit().putBoolean("ignore_battery_prompt", true).apply()
                     isAskingPermissions = false
-                    checkPermissionsSequentially() // Tenta a próxima
+                    checkPermissionsSequentially()
                 }
                 .setCancelable(false)
                 .show()
             return
         }
 
-        // 2. Checa as notificações
+        // 2. Notificações
         if (!PermissionUtils.isNotificationAccessGranted(this) && !prefs.getBoolean("ignore_notif_prompt", false)) {
             isAskingPermissions = true
             AlertDialog.Builder(this)
@@ -84,6 +79,43 @@ class LauncherActivity : AppCompatActivity() {
                 .show()
             return
         }
+
+        // 3. Device Admin
+        val doubleTapEnabled = prefs.getBoolean("double_tap_lock", true)
+        if (doubleTapEnabled && !isDeviceAdminActive() && !prefs.getBoolean("ignore_admin_prompt", false)) {
+            isAskingPermissions = true
+            AlertDialog.Builder(this)
+                .setTitle("Permissão de Administrador")
+                .setMessage("Para bloquear a tela com duplo toque, é necessário ativar o administrador do dispositivo.")
+                .setPositiveButton("Ativar") { _, _ ->
+                    isAskingPermissions = false
+                    val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
+                    intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, getAdminComponentName())
+                    intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Permita que o launcher bloqueie a tela automaticamente.")
+                    startActivity(intent)
+                }
+                .setNegativeButton("Agora não") { _, _ ->
+                    prefs.edit().putBoolean("ignore_admin_prompt", true).apply()
+                    isAskingPermissions = false
+                }
+                .setCancelable(false)
+                .show()
+        }
+    }
+
+    // Métodos auxiliares usados também no ClockFragment
+    fun isDeviceAdminActive(): Boolean {
+        val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        return dpm.isAdminActive(getAdminComponentName())
+    }
+
+    fun getAdminComponentName(): ComponentName {
+        return ComponentName(this, LockScreenReceiver::class.java)
+    }
+
+    fun lockScreen() {
+        val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        dpm.lockNow()
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -95,32 +127,26 @@ class LauncherActivity : AppCompatActivity() {
 
     private fun resetToClockScreen(): Boolean {
         var navigated = false
-
-        // Resolvido o bug que você comentou: envolver em try-catch evita crash se a view ainda não existir.
-        // 1. Volta o paginador de widgets para a primeira página
         try {
             val widgetsViewPager = findViewById<ViewPager2>(R.id.viewPagerWidgets)
             if (widgetsViewPager != null && widgetsViewPager.currentItem != 0) {
                 widgetsViewPager.setCurrentItem(0, true)
                 navigated = true
             }
-        } catch (e: Exception) { e.printStackTrace() }
+        } catch (_: Exception) {}
 
-        // 2. Volta o paginador vertical (Desce da tela de Widgets para o Relógio)
         try {
             val verticalViewPager = findViewById<ViewPager2>(R.id.viewPagerVertical)
             if (verticalViewPager != null && verticalViewPager.currentItem != 0) {
                 verticalViewPager.setCurrentItem(0, true)
                 navigated = true
             }
-        } catch (e: Exception) { e.printStackTrace() }
+        } catch (_: Exception) {}
 
-        // 3. Volta o paginador horizontal
         if (viewPager.currentItem != 1) {
             viewPager.setCurrentItem(1, true)
             navigated = true
         }
-
         return navigated
     }
 }
