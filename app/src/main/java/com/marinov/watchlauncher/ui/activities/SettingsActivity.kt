@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher
+package com.marinov.watchlauncher.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.edit
+import com.marinov.watchlauncher.R
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -21,7 +22,6 @@ class SettingsActivity : AppCompatActivity() {
         val switchDoubleTap = findViewById<SwitchCompat>(R.id.switchDoubleTap)
         val prefs = getSharedPreferences("launcher_prefs", MODE_PRIVATE)
 
-        // Carrega estado atual
         val doubleTapEnabled = prefs.getBoolean("double_tap_lock", true)
         switchDoubleTap.isChecked = doubleTapEnabled
 
@@ -29,13 +29,11 @@ class SettingsActivity : AppCompatActivity() {
             prefs.edit { putBoolean("double_tap_lock", isChecked) }
         }
 
-        // Botão Ocultar Apps
         val btnHideApps = findViewById<TextView>(R.id.btnHideApps)
         btnHideApps.setOnClickListener {
             startActivity(Intent(this, HiddenAppsActivity::class.java))
         }
 
-        // Botão Reiniciar Launcher
         val btnRestart = findViewById<TextView>(R.id.btnRestartLauncher)
         btnRestart.setOnClickListener {
             val intent = packageManager.getLaunchIntentForPackage(packageName)

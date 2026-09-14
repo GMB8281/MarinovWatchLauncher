@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher
+package com.marinov.watchlauncher.utils
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
@@ -11,14 +11,12 @@ import androidx.core.net.toUri
 
 object PermissionUtils {
 
-    // Apenas verifica se a bateria já está ignorando otimizações
     fun isBatteryOptimizationIgnored(context: Context): Boolean {
         val packageName = context.packageName
         val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         return pm.isIgnoringBatteryOptimizations(packageName)
     }
 
-    // Chama a tela do sistema para conceder permissão
     @SuppressLint("BatteryLife")
     fun launchBatterySettings(context: Context) {
         val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
@@ -31,7 +29,6 @@ object PermissionUtils {
         }
     }
 
-    // Apenas verifica se as notificações estão liberadas
     fun isNotificationAccessGranted(context: Context): Boolean {
         val pkgName = context.packageName
         val flat = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
@@ -47,7 +44,6 @@ object PermissionUtils {
         return false
     }
 
-    // Chama a tela do sistema para conceder acesso às notificações
     fun launchNotificationSettings(context: Context) {
         val intent = Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK

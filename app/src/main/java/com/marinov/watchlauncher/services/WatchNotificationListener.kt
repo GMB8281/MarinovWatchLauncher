@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher
+package com.marinov.watchlauncher.services
 
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -7,7 +7,6 @@ import androidx.lifecycle.MutableLiveData
 class WatchNotificationListener : NotificationListenerService() {
 
     companion object {
-        // LiveData para observar notificações no Fragment renomeado para evitar conflitos
         val notificationsLiveData = MutableLiveData<List<StatusBarNotification>>()
         var instance: WatchNotificationListener? = null
     }
@@ -28,7 +27,6 @@ class WatchNotificationListener : NotificationListenerService() {
 
     private fun updateNotifications() {
         try {
-            // activeNotifications aqui chama corretamente o getActiveNotifications() do sistema
             val notifications = activeNotifications.toList().filter {
                 it.isClearable && !it.notification.extras.getString("android.title").isNullOrEmpty()
             }

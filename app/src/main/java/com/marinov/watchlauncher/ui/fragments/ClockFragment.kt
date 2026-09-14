@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher
+package com.marinov.watchlauncher.ui.fragments
 
 import android.content.Context
 import android.os.Bundle
@@ -8,8 +8,10 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
-import androidx.fragment.app.Fragment
 import androidx.core.view.GestureDetectorCompat
+import androidx.fragment.app.Fragment
+import com.marinov.watchlauncher.R
+import com.marinov.watchlauncher.ui.activities.LauncherActivity
 
 class ClockFragment : Fragment() {
 
@@ -32,7 +34,6 @@ class ClockFragment : Fragment() {
             gestureDetector.onTouchEvent(event)
             true
         }
-
         return view
     }
 
@@ -46,7 +47,6 @@ class ClockFragment : Fragment() {
         if (activity.isDeviceAdminActive()) {
             activity.lockScreen()
         } else {
-            // Se o admin não estiver ativo, oferece para ativar
             AlertDialog.Builder(requireContext())
                 .setTitle("Administrador necessário")
                 .setMessage("O bloqueio de tela requer permissão de administrador. Deseja ativar agora?")

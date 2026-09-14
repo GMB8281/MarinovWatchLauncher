@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher
+package com.marinov.watchlauncher.ui.fragments
 
 import android.app.Activity.RESULT_OK
 import android.app.AlertDialog
@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.marinov.watchlauncher.R
 import kotlin.math.min
 import androidx.core.content.edit
 
@@ -39,15 +40,16 @@ class WidgetFragment : Fragment() {
         viewPagerWidgets = view.findViewById(R.id.viewPagerWidgets)
 
         appWidgetManager = AppWidgetManager.getInstance(requireContext())
-        appWidgetHost = AppWidgetHost(requireContext(), APPWIDGET_HOST_ID)
+
+        // CORREÇÃO 1: Usar applicationContext para evitar que o AppCompat modifique os ImageViews do widget
+        appWidgetHost = AppWidgetHost(requireContext().applicationContext, APPWIDGET_HOST_ID)
         appWidgetHost.startListening()
 
-        // Carrega a lista de widgets salvos no dispositivo
         loadSavedWidgets()
 
         adapter = WidgetPagerAdapter()
         viewPagerWidgets.adapter = adapter
-        viewPagerWidgets.offscreenPageLimit = 5 // Mantém os 5 widgets rodando fluidamente na memória
+        viewPagerWidgets.offscreenPageLimit = 5
 
         return view
     }
@@ -112,8 +114,6 @@ class WidgetFragment : Fragment() {
         if (appWidgetId != -1) {
             widgetIds.add(appWidgetId)
             saveWidgets()
-
-            // Atualiza a tela de widgets nativamente e move o paginador para mostrar o novo widget
             adapter.notifyDataSetChanged()
             viewPagerWidgets.currentItem = widgetIds.size - 1
             Toast.makeText(requireContext(), "Widget adicionado!", Toast.LENGTH_SHORT).show()
@@ -138,20 +138,15 @@ class WidgetFragment : Fragment() {
         appWidgetHost.stopListening()
     }
 
-    // --- Adapter Interno para gerenciar as páginas de Widgets ---
     inner class WidgetPagerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
         private val TYPE_ADD = 0
         private val TYPE_WIDGET = 1
 
         override fun getItemViewType(position: Int): Int {
-            // Se a posição for igual ao tamanho da lista atual, é o botão de adicionar.
-            // Exemplo: 2 widgets = posições 0 e 1. Se a posição for 2, é o botão +.
             return if (position == widgetIds.size) TYPE_ADD else TYPE_WIDGET
         }
 
         override fun getItemCount(): Int {
-            // Conta = widgets instalados + 1 botão adicionar. O limite máximo absoluto é 5 telas.
             return min(widgetIds.size + 1, 5)
         }
 
@@ -173,12 +168,12 @@ class WidgetFragment : Fragment() {
                 val appWidgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
 
                 holder.container.removeAllViews()
-
                 if (appWidgetInfo != null) {
-                    val hostView = appWidgetHost.createView(requireContext(), appWidgetId, appWidgetInfo)
+                    // CORREÇÃO 2 CRÍTICA: Usar applicationContext aqui para inflar o RemoteViews
+                    // Isso impede que o AppCompatViewInflater transforme <ImageView> em AppCompatImageView
+                    val hostView = appWidgetHost.createView(requireContext().applicationContext, appWidgetId, appWidgetInfo)
                     hostView.setAppWidget(appWidgetId, appWidgetInfo)
 
-                    // Previne que alguns widgets "roubem" o clique longo do container
                     hostView.setOnLongClickListener {
                         promptRemoveWidget(position)
                         true
@@ -186,7 +181,6 @@ class WidgetFragment : Fragment() {
                     holder.container.addView(hostView)
                 }
 
-                // Permite deletar segurando na área vazia da tela do widget também
                 holder.container.setOnLongClickListener {
                     promptRemoveWidget(position)
                     true

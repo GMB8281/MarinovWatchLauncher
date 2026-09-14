@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher
+package com.marinov.watchlauncher.ui.fragments
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -7,7 +7,6 @@ import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherApps
 import android.content.pm.ResolveInfo
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Process
 import android.provider.Settings
@@ -19,13 +18,10 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-
-data class AppInfo(
-    val label: String,
-    val icon: Drawable,
-    val packageName: String,
-    val className: String
-)
+import com.marinov.watchlauncher.R
+import com.marinov.watchlauncher.data.model.AppInfo
+import com.marinov.watchlauncher.ui.activities.SettingsActivity
+import com.marinov.watchlauncher.ui.adapters.AppAdapter
 
 class AppDrawerFragment : Fragment() {
 
@@ -34,7 +30,7 @@ class AppDrawerFragment : Fragment() {
     private var apps = mutableListOf<AppInfo>()
 
     private val SETTINGS_PACKAGE = "com.marinov.watchlauncher"
-    private val SETTINGS_CLASS = "com.marinov.watchlauncher.SettingsActivity"
+    private val SETTINGS_CLASS = "com.marinov.watchlauncher.ui.activities.SettingsActivity"
 
     private val packageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -53,16 +49,14 @@ class AppDrawerFragment : Fragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_apps, container, false)
         recyclerView = view.findViewById(R.id.recyclerViewApps)
-
         recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
 
         adapter = AppAdapter(apps) { app -> launchApp(app) }
-
         adapter.setOnLongClickListener { appInfo, anchorView ->
             showAppOptionsMenu(appInfo, anchorView)
         }
-
         recyclerView.adapter = adapter
+
         loadApps()
         return view
     }
@@ -91,17 +85,15 @@ class AppDrawerFragment : Fragment() {
         val intent = Intent(Intent.ACTION_MAIN, null).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
-
         val resolveInfos: List<ResolveInfo> = pm.queryIntentActivities(intent, 0)
 
-        // Carrega lista de pacotes ocultos
         val prefs = requireContext().getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
         val hiddenPackages = prefs.getStringSet("hidden_packages", emptySet()) ?: emptySet()
 
         apps.clear()
         apps.addAll(
             resolveInfos
-                .filter { it.activityInfo.name != "com.marinov.watchlauncher.LauncherActivity" }
+                .filter { it.activityInfo.name != "com.marinov.watchlauncher.ui.activities.LauncherActivity" }
                 .filter { it.activityInfo.packageName !in hiddenPackages }
                 .map {
                     AppInfo(
@@ -112,7 +104,6 @@ class AppDrawerFragment : Fragment() {
                     )
                 }.sortedBy { it.label.lowercase() }
         )
-
         adapter.notifyDataSetChanged()
     }
 
@@ -132,7 +123,6 @@ class AppDrawerFragment : Fragment() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
             }
             startActivity(intent)
-
         } catch (e: Exception) {
             e.printStackTrace()
             try {
@@ -146,7 +136,6 @@ class AppDrawerFragment : Fragment() {
 
     private fun showAppOptionsMenu(app: AppInfo, anchorView: View) {
         val popup = PopupMenu(requireContext(), anchorView)
-
         addShortcutsToMenu(popup, app)
 
         popup.menu.add("Abrir ${app.label}").setOnMenuItemClickListener {
@@ -159,7 +148,6 @@ class AppDrawerFragment : Fragment() {
                 showAppInfo(app.packageName)
                 true
             }
-
             if (canBeUninstalled(app.packageName)) {
                 popup.menu.add("Desinstalar").setOnMenuItemClickListener {
                     uninstallApp(app.packageName)
@@ -167,7 +155,6 @@ class AppDrawerFragment : Fragment() {
                 }
             }
         }
-
         popup.show()
     }
 
@@ -186,7 +173,6 @@ class AppDrawerFragment : Fragment() {
     private fun addShortcutsToMenu(popup: PopupMenu, app: AppInfo) {
         try {
             val launcherApps = requireContext().getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-
             val shortcutQuery = LauncherApps.ShortcutQuery().apply {
                 setQueryFlags(
                     LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC or
@@ -195,9 +181,7 @@ class AppDrawerFragment : Fragment() {
                 )
                 setPackage(app.packageName)
             }
-
             val shortcuts = launcherApps.getShortcuts(shortcutQuery, Process.myUserHandle()) ?: emptyList()
-
             shortcuts.forEach { shortcut ->
                 popup.menu.add(shortcut.shortLabel.toString()).setOnMenuItemClickListener {
                     try {

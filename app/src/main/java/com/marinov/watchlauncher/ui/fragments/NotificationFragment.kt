@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher
+package com.marinov.watchlauncher.ui.fragments
 
 import android.app.PendingIntent
 import android.content.pm.PackageManager
@@ -12,6 +12,8 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
+import com.marinov.watchlauncher.R
+import com.marinov.watchlauncher.services.WatchNotificationListener
 
 class NotificationFragment : Fragment() {
 
@@ -54,7 +56,6 @@ class NotificationFragment : Fragment() {
             if (notifications.isNotEmpty()) {
                 val sbn = notifications[currentNotifIndex]
                 WatchNotificationListener.instance?.clearNotification(sbn.key)
-                // O listener irá atualizar a lista e o observe() atualizará a UI com a próxima
             }
         }
 
@@ -82,7 +83,6 @@ class NotificationFragment : Fragment() {
 
             val sbn = notifications[currentNotifIndex]
             val extras = sbn.notification.extras
-
             val title = extras.getString("android.title") ?: "Sem Título"
             val text = extras.getCharSequence("android.text")?.toString() ?: ""
 

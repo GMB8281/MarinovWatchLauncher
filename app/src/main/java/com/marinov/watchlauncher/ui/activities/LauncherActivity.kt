@@ -1,4 +1,4 @@
-package com.marinov.watchlauncher
+package com.marinov.watchlauncher.ui.activities
 
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
@@ -9,6 +9,10 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
+import com.marinov.watchlauncher.R
+import com.marinov.watchlauncher.receivers.LockScreenReceiver
+import com.marinov.watchlauncher.ui.adapters.LauncherPagerAdapter
+import com.marinov.watchlauncher.utils.PermissionUtils
 
 class LauncherActivity : AppCompatActivity() {
 
@@ -38,10 +42,8 @@ class LauncherActivity : AppCompatActivity() {
 
     private fun checkPermissionsSequentially() {
         if (isAskingPermissions) return
-
         val prefs = getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
 
-        // 1. Bateria
         if (!PermissionUtils.isBatteryOptimizationIgnored(this) && !prefs.getBoolean("ignore_battery_prompt", false)) {
             isAskingPermissions = true
             AlertDialog.Builder(this)
@@ -61,7 +63,6 @@ class LauncherActivity : AppCompatActivity() {
             return
         }
 
-        // 2. Notificações
         if (!PermissionUtils.isNotificationAccessGranted(this) && !prefs.getBoolean("ignore_notif_prompt", false)) {
             isAskingPermissions = true
             AlertDialog.Builder(this)
@@ -80,7 +81,6 @@ class LauncherActivity : AppCompatActivity() {
             return
         }
 
-        // 3. Device Admin
         val doubleTapEnabled = prefs.getBoolean("double_tap_lock", true)
         if (doubleTapEnabled && !isDeviceAdminActive() && !prefs.getBoolean("ignore_admin_prompt", false)) {
             isAskingPermissions = true
@@ -103,7 +103,6 @@ class LauncherActivity : AppCompatActivity() {
         }
     }
 
-    // Métodos auxiliares usados também no ClockFragment
     fun isDeviceAdminActive(): Boolean {
         val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
         return dpm.isAdminActive(getAdminComponentName())

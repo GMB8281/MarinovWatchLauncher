@@ -19,7 +19,7 @@
 
         <!-- Activity Principal da Launcher -->
         <activity
-            android:name=".LauncherActivity"
+            android:name=".ui.activities.LauncherActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:clearTaskOnLaunch="true"
@@ -35,7 +35,7 @@
 
         <!-- Nova Activity de Configurações ("App Falso") -->
         <activity
-            android:name=".SettingsActivity"
+            android:name=".ui.activities.SettingsActivity"
             android:exported="true"
             android:label="Config Launcher"
             android:icon="@drawable/ic_settings"
@@ -48,12 +48,12 @@
 
         <!-- Activity para escolher apps ocultos -->
         <activity
-            android:name=".HiddenAppsActivity"
+            android:name=".ui.activities.HiddenAppsActivity"
             android:exported="false"
             android:theme="@style/Theme.Launcher.NoActionBar" />
 
         <service
-            android:name=".WatchNotificationListener"
+            android:name=".services.WatchNotificationListener"
             android:label="Watch Launcher Notifications"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
@@ -64,7 +64,7 @@
 
         <!-- Receiver de Device Admin para bloqueio de tela -->
         <receiver
-            android:name=".LockScreenReceiver"
+            android:name=".receivers.LockScreenReceiver"
             android:permission="android.permission.BIND_DEVICE_ADMIN"
             android:exported="true">
             <meta-data
